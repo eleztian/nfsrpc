@@ -10,15 +10,15 @@ func NewAuth(authWay nfsrpc.AuthFlavor, body interface{}) *nfsrpc.OpaqueAuth {
 	case nfsrpc.AuthRSA:
 	case nfsrpc.AuthSys:
 	case nfsrpc.AuthShort:
-	case nfsrpc.RPCsecGss:
+	case nfsrpc.RPCSecGss:
 	}
 	return &nfsrpc.OpaqueAuth{Flavor: authWay}
 }
 
-type AUTH_UNIX struct {
+type AuthsysParms struct {
 	Stamp       uint32
-	Machinename string
+	MachineName string // max 255
 	Uid         uint32
 	Gid         uint32
-	Gids        uint32
+	Gids        uint32 // max 16 a counted array of groups that contain the caller as a member.
 }

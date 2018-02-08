@@ -1,5 +1,9 @@
 package nfsrpc
 
+/*
+  rfc5531 section-8.4.2
+*/
+
 // A RPC message can be of two types: call or reply
 const (
 	RPCMsgTypeCall  MsgType = 0
@@ -10,6 +14,12 @@ const (
 const RPCProtocolVersion = 2
 
 // RPCMsg represents a complete RPC message (call or reply)
+// union switch (msg_type mtype) {
+//		case CALL:
+//			call_body cbody;
+//		case REPLY:
+//			reply_body rbody;
+// } body;
 type RPCMsg struct {
 	Xid   uint32
 	Type  MsgType   `xdr:"union"`
@@ -38,6 +48,8 @@ type OpaqueAuth struct {
 	Body   []byte
 }
 
+const OpaueBodyMaxLength = 400
+
 // AuthFlavor represents the type of authentication used
 type AuthFlavor int32
 
@@ -49,7 +61,7 @@ const (
 	AuthDh                      // DES style (encrypted timestamp)
 	AuthKerb                    // Keberos Auth
 	AuthRSA                     // RSA authentication
-	RPCsecGss                   // GSS-based RPC security
+	RPCSecGss                   // GSS-based RPC security
 )
 
 // ReplyBody represents a generic RPC reply to a `Call`
@@ -123,12 +135,27 @@ type AuthStat int32
 
 // Why authentication failed
 const (
-	AuthOk           AuthStat = iota // Success
-	AuthBadcred                      // Bad credential (seal broken)
-	AuthRejectedcred                 // Client must begin new session
-	AuthBadverf                      // Bad verifier (seal broken)
-	AuthRejectedVerf                 // Verifier expired or replayed
-	AuthTooweak                      // Rejected for security reasons
-	AuthInvalidresp                  // Bogus response verifier
-	AuthFailed                       // Reason unknown
+	AuthOk AuthStat = iota // Success
+
+	// failed at remote end
+	AuthBadcred      // Bad credential (seal broken)
+	AuthRejectedcred // Client must begin new session
+	AuthBadverf      // Bad verifier (seal broken)
+	AuthRejectedVerf // Verifier expired or replayed
+	AuthTooweak      // Rejected for security reasons
+
+	// failed locally
+	AuthInvalidresp // Bogus response verifier
+	AuthFailed      // Reason unknown
+
+	// AUTH_KERB errors: deprecated. see [RFC2695]
+	AuthKerbGenric // kerberos generic error
+	AuthTimeexpire // time of credential expired
+	AuthTktFile    // problem with ticket file
+	AuthDecode     // can't decode authenticator
+	AuthNetAddr    // wrong net address in ticket
+
+	// RPCSEC_GSS GSS related errors
+	RpcsesGssCredproblem // no credentials for user
+	RpcsecGssCtxproblem  // problem with context
 )
