@@ -1,6 +1,10 @@
 package methods
 
-import "bs-2018/mynfs/nfsrpc"
+import (
+	"bs-2018/mynfs/nfsrpc"
+	"net/rpc"
+	"errors"
+)
 
 // MOUNT
 // RFC 1813 Section 5.0
@@ -42,3 +46,45 @@ const (
 	MNTNAMLEN  = 255  /* Maximum bytes in a name */
 	FHSIZE3    = 64   /* Maximum bytes in a V3 file handle */
 )
+
+// MOUNTPROC3_DUMP return
+type Dump_result struct {
+	name      string
+	dirpath   string
+}
+
+type DumpReply struct {
+	D Dump_result
+	Next *getDumpReply `xdr:"optional"`
+}
+
+type getDumpReply struct {
+	Next *DumpReply `xdr:"optional"`
+}
+
+func Dump(client *rpc.Client) ([]Dump_result, error) {
+	var DumpR []Dump_result
+	var result getDumpReply
+
+	if client == nil {
+		return nil, errors.New("Could not create pmap client")
+	}
+	defer client.Close()
+
+	err := client.Call("Mount.Dump", nil, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Next != nil {
+		trav := result.Next
+		for {
+			entry := Dump_result(trav.D)
+			DumpR = append(DumpR, entry)
+			trav = trav.Next.Next
+			if trav == nil {
+				break
+			}
+		}
+	}
+}
