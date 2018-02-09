@@ -63,6 +63,13 @@ const (
 	AuthRSA                     // RSA authentication
 	RPCSecGss                   // GSS-based RPC security
 )
+type AuthsysParms struct {
+	Stamp       uint32
+	MachineName string // max 255
+	Uid         uint32
+	Gid         uint32
+	Gids        uint32 // max 16 a counted array of groups that contain the caller as a member.
+}
 
 // ReplyBody represents a generic RPC reply to a `Call`
 type ReplyBody struct {

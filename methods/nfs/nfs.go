@@ -2,13 +2,14 @@ package nfs
 
 import (
 	"bs-2018/mynfs/nfsrpc"
+	"log"
 )
 
 func init() {
 	methods := []string{
 		"Null",
-		"Getattr",
-		"Setattr",
+		"GetAttr",
+		"SetAttr",
 		"Lookup",
 		"Access",
 		"ReadLink",
@@ -44,4 +45,5 @@ func init() {
 			panic(err)
 		}
 	}
+	log.Println("Register over")
 }

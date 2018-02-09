@@ -7,10 +7,19 @@ type GetAttr3Args struct {
 }
 
 type GetAttr3Resok struct {
-	ObjAttributes
+	ObjAttributes Fattr3
 }
 
-func (c *Client) GetAttr() (error){
+type GetAttrRes struct {
+	NFSStat3 NFS3Stat `xdr:"union"`
+	Resok GetAttr3Resok `xdr:"unioncase=0"`
+}
 
-	return nil
+func (c *Client) GetAttr(args *GetAttr3Args) (*GetAttrRes, error){
+	var result GetAttrRes
+	err := c.Call("NFS.GetAttr", args, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
