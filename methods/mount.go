@@ -2,8 +2,9 @@ package methods
 
 import (
 	"bs-2018/mynfs/nfsrpc"
-	"net/rpc"
 	"errors"
+	"net/rpc"
+	"fmt"
 )
 
 // MOUNT
@@ -14,7 +15,7 @@ const (
 	MOUNT_VERS = 3
 )
 
-type MountMethod int
+type MountMethod uint32
 
 // mount
 const (
@@ -28,48 +29,81 @@ const (
 
 // mount error
 const (
-	MNT3_OK             = 0     /* no error */
-	MNT3ERR_PERM        = 1     /* Not owner */
-	MNT3ERR_NOENT       = 2     /* No such file or directory */
-	MNT3ERR_IO          = 5     /* I/O error */
-	MNT3ERR_ACCES       = 13    /* Permission denied */
-	MNT3ERR_NOTDIR      = 20    /* Not a directory */
-	MNT3ERR_INVAL       = 22    /* Invalid argument */
-	MNT3ERR_NAMETOOLONG = 63    /* Filename too long */
-	MNT3ERR_NOTSUPP     = 10004 /* Operation not supported */
-	MNT3ERR_SERVERFAULT = 10006 /* A failure on the server */
+	MNT3_OK             = 0     // no error
+	MNT3ERR_PERM        = 1     // Not owner
+	MNT3ERR_NOENT       = 2     // No such file or directory
+	MNT3ERR_IO          = 5     // I/O error
+	MNT3ERR_ACCES       = 13    // Permission denied
+	MNT3ERR_NOTDIR      = 20    // Not a directory
+	MNT3ERR_INVAL       = 22    // Invalid argument
+	MNT3ERR_NAMETOOLONG = 63    // Filename too long
+	MNT3ERR_NOTSUPP     = 10004 // Operation not supported
+	MNT3ERR_SERVERFAULT = 10006 // A failure on the server
 )
 
 const (
+	// The MOUNT service uses AUTH_NONE in the NULL procedure.
 	AUTH_WAY   = nfsrpc.AuthNone
-	MNTPATHLEN = 1024 /* Maximum bytes in a path name */
-	MNTNAMLEN  = 255  /* Maximum bytes in a name */
-	FHSIZE3    = 64   /* Maximum bytes in a V3 file handle */
+	MNTPATHLEN = 1024 // Maximum bytes in a path name
+	MNTNAMLEN  = 255  // Maximum bytes in a name
+	FHSIZE3    = 64   // Maximum bytes in a V3 file handle
 )
 
+/*
+
+   typedef opaque fhandle3<FHSIZE3>;
+   typedef string dirpath<MNTPATHLEN>;
+   typedef string name<MNTNAMLEN>;
+
+*/
+
+type MountRes3 struct {
+	Stat uint32 `xdr:"union"`
+	MountInfo MountRes3OK `xdr:"unioncase=0"`
+}
+
+type MountRes3OK struct {
+	FHandle []byte
+	flavors nfsrpc.AuthFlavor
+}
+
+func Mnt(client *rpc.Client, dirpath string) (*MountRes3, error) {
+	if client == nil {
+		return nil, errors.New("Could not create pmap client")
+	}
+	//defer client.Close()
+	var result MountRes3
+	err := client.Call("Mount.Mnt", dirpath, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+
 // MOUNTPROC3_DUMP return
-type Dump_result struct {
-	name      string
-	dirpath   string
+type MountBody struct {
+	Name    string // max MNTNAMLEN
+	Dirpath string // max MNTPATHLEN
 }
 
 type DumpReply struct {
-	D Dump_result
-	Next *getDumpReply `xdr:"optional"`
+	M    MountBody
+	Next *DumpReply `xdr:"optional"`
 }
 
 type getDumpReply struct {
 	Next *DumpReply `xdr:"optional"`
 }
 
-func Dump(client *rpc.Client) ([]Dump_result, error) {
-	var DumpR []Dump_result
+func Dump(client *rpc.Client) ([]MountBody, error) {
+	var MountList []MountBody
 	var result getDumpReply
 
 	if client == nil {
 		return nil, errors.New("Could not create pmap client")
 	}
-	defer client.Close()
+	//defer client.Close()
 
 	err := client.Call("Mount.Dump", nil, &result)
 	if err != nil {
@@ -79,13 +113,58 @@ func Dump(client *rpc.Client) ([]Dump_result, error) {
 	if result.Next != nil {
 		trav := result.Next
 		for {
-			entry := Dump_result(trav.D)
-			DumpR = append(DumpR, entry)
-			trav = trav.Next.Next
+			entry := MountBody(trav.M)
+			MountList = append(MountList, entry)
+			trav = trav.Next
 			if trav == nil {
 				break
 			}
 		}
 	}
-	return DumpR, nil
+	return MountList, nil
+}
+
+type GroupNode struct {
+	Name string
+	Next *GroupNode `xdr:"optional"`
+}
+
+type ExportNode struct {
+	DirPath string
+	Groups  []string
+}
+
+type ExportList struct {
+	Node ExportNode
+	Next *ExportList `xdr:"optional"`
+}
+
+type GetExportReply struct {
+	Next *ExportList `xdr:"optional"`
+}
+
+func Export(client *rpc.Client) ([]ExportNode, error) {
+	if client == nil {
+		return nil, errors.New("Could not create pmap client")
+	}
+	//defer client.Close()
+	var result GetExportReply
+	err := client.Call("Mount.Export", nil, &result)
+	if err != nil {
+		return nil, err
+	}
+	var Exports []ExportNode
+	fmt.Println(*result.Next)
+	if result.Next != nil {
+		trav := result.Next
+		for {
+			entry := ExportNode(trav.Node)
+			Exports = append(Exports, entry)
+			trav = trav.Next
+			if trav == nil {
+				break
+			}
+		}
+	}
+	return Exports, nil
 }
