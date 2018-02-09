@@ -87,4 +87,5 @@ func Dump(client *rpc.Client) ([]Dump_result, error) {
 			}
 		}
 	}
+	return DumpR, nil
 }
