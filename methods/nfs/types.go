@@ -131,7 +131,7 @@ type Fattr3 struct {
 // attributes.
 type PostOpAttr struct {
 	AttributesFollow bool   `xdr:"union"`
-	Attributes       Fattr3 `xdr:"unioncase=true"`
+	Attributes       Fattr3 `xdr:"unioncase=1"`
 }
 
 // This is the subset of pre-operation attributes needed to better
@@ -144,7 +144,7 @@ type WccAttr struct {
 }
 type PreOpAttr struct {
 	AttributesFollow bool    `xdr:"union"`
-	Attributes       WccAttr `xdr:"unioncase=true"`
+	Attributes       WccAttr `xdr:"unioncase=1"`
 }
 
 //When a client performs an operation that modifies the state of a
@@ -168,7 +168,7 @@ type WccData struct {
 // CREATE, MKDIR, SYMLINK, MKNOD, and READDIRPLUS requests.
 type PostOpFh3 struct {
 	HandleFollows bool    `xdr:"union"`
-	Handle        NFS_FH3 `xdr:"unioncase=true"`
+	Handle        NFS_FH3 `xdr:"unioncase=1"`
 }
 
 type TimeHow uint32
@@ -181,15 +181,15 @@ const (
 
 type SetMode struct {
 	SetIt bool   `xdr:"union"`
-	Mode  uint32 `xdr:"unioncase=true"`
+	Mode  uint32 `xdr:"unioncase=1"`
 }
 type SetUid struct {
 	SetIt bool   `xdr:"union"`
-	Uid   uint32 `xdr:"unioncase=true"`
+	Uid   uint32 `xdr:"unioncase=1"`
 }
 type SetGid struct {
 	SetIt bool   `xdr:"union"`
-	Gid   uint32 `xdr:"unioncase=true"`
+	Gid   uint32 `xdr:"unioncase=1"`
 }
 type SetSize struct {
 	SetIt uint   `xdr:"union"`
@@ -220,3 +220,12 @@ type DirOpArgs3 struct {
 	Dir  NFS_FH3
 	Name string
 }
+
+const NFS3_WRITEVERFSIZE = 8
+type WriteVerf3 [NFS3_WRITEVERFSIZE]byte
+
+const NFS3_CREADTEVERFSIZE = 8
+type CreateVerf3 [NFS3_CREADTEVERFSIZE]byte
+
+const NFS3_COOKIEVERFSIZE  = 8
+type CookieVerf3 [NFS3_COOKIEVERFSIZE ]byte

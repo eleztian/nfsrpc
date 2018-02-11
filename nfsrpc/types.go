@@ -45,7 +45,7 @@ type CallBody struct {
 // implementation.
 type OpaqueAuth struct {
 	Flavor AuthFlavor
-	Body   []byte
+	Body   []byte `xdr:"opaque=true"`
 }
 
 const OpaueBodyMaxLength = 400
@@ -63,6 +63,7 @@ const (
 	AuthRSA                     // RSA authentication
 	RPCSecGss                   // GSS-based RPC security
 )
+
 type AuthsysParms struct {
 	Stamp       uint32
 	MachineName string // max 255
