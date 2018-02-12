@@ -1,4 +1,4 @@
-package nfs
+package nfs_progra
 
 // GETATTR3res NFSPROC3_GETATTR(GETATTR3args) = 1;
 

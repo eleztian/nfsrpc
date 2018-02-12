@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bs-2018/mynfs/methods"
+	"bs-2018/mynfs/nfs"
 	"bs-2018/mynfs/nfsrpc"
 	"fmt"
 	"log"

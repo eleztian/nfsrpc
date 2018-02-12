@@ -3,6 +3,7 @@ package nfsrpc
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/rpc"
 	"strconv"
@@ -13,6 +14,7 @@ const (
 	pmapPort                 = 111
 	portmapperProgramNumber  = 100000
 	portmapperProgramVersion = 2
+	PrograNmae               = "Pmap"
 )
 
 // Protocol is a type representing the protocol (TCP or UDP) over which the
@@ -36,26 +38,35 @@ type PortMapper struct {
 	Port     uint32
 }
 
-func init() {
-	procedureID := ProcedureID{
+func PamapInit() {
+	// This is ordered as per procedure number
+	methods := []string{
+		"ProcNull",
+		"ProcSet",
+		"ProcUnset",
+		"ProcGetPort",
+		"ProcDump",
+		"ProcCallIt",
+	}
+
+	producerId := ProcedureID{
 		ProgramNumber:  portmapperProgramNumber,
 		ProgramVersion: portmapperProgramVersion,
 	}
 
-	// This is ordered as per procedure number
-	remoteProcedures := [6]string{
-		"Pmap.ProcNull",
-		"Pmap.ProcSet",
-		"Pmap.ProcUnset",
-		"Pmap.ProcGetPort",
-		"Pmap.ProcDump",
-		"Pmap.ProcCallIt",
+	for id, procName := range methods {
+		producerId.ProcedureNumber = uint32(id)
+		if err := RegisterProcedure(
+			Procedure{
+				ID:   producerId,
+				Name: PrograNmae + "." + procName,
+			},
+		); err != nil {
+			panic(err)
+		}
 	}
-	// 注册port Map 的方法
-	for id, procName := range remoteProcedures {
-		procedureID.ProcedureNumber = uint32(id)
-		_ = RegisterProcedure(Procedure{procedureID, procName})
-	}
+
+	log.Println("\tPmap Register over")
 }
 
 func NewPortMapperClient(host string) *rpc.Client {

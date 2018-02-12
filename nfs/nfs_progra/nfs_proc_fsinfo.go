@@ -1,4 +1,4 @@
-package nfs
+package nfs_progra
 
 /*
 Procedure 19: FSINFO - Get static file system Information

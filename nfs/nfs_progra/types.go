@@ -1,6 +1,4 @@
-package nfs
-
-import "net/rpc"
+package nfs_progra
 
 const (
 	NFS_PROG = 100003
@@ -68,10 +66,6 @@ const (
 	NFS3ERR_JUKEBOX              = 10008
 )
 
-type Client struct {
-	rpc.Client
-}
-
 type Opaque []byte
 
 // The nfs_fh3 is the variable-length opaque object returned by the
@@ -86,7 +80,7 @@ type NFS_FH3 struct {
 type FType uint32
 
 const (
-	NF3REG FType = iota+1
+	NF3REG FType = iota + 1
 	NF3DIR
 	NF3BLK
 	NF3CHR
@@ -222,10 +216,13 @@ type DirOpArgs3 struct {
 }
 
 const NFS3_WRITEVERFSIZE = 8
+
 type WriteVerf3 [NFS3_WRITEVERFSIZE]byte
 
 const NFS3_CREADTEVERFSIZE = 8
+
 type CreateVerf3 [NFS3_CREADTEVERFSIZE]byte
 
-const NFS3_COOKIEVERFSIZE  = 8
-type CookieVerf3 [NFS3_COOKIEVERFSIZE ]byte
+const NFS3_COOKIEVERFSIZE = 8
+
+type CookieVerf3 [NFS3_COOKIEVERFSIZE]byte

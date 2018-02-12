@@ -1,4 +1,4 @@
-package nfs
+package nfs_progra
 
 /*
 MKNOD - Create a special device

@@ -1,54 +1,29 @@
-package nfs
+package nfs_progra
 
 import (
-	"bs-2018/mynfs/methods"
 	"bs-2018/mynfs/nfsrpc"
-	"bytes"
 	"fmt"
 	"net"
-	"net/rpc"
 	"testing"
 	"time"
-
-	"github.com/rasky/go-xdr/xdr2"
 )
 
 var host = "111.231.215.178"
 
-func GetNfsClient(host string) (*rpc.Client, error) {
-	port, err := nfsrpc.PmapGetPort(host, NFS_PROG, NFS_VERS, nfsrpc.IPProtoTCP)
-	if err != nil {
-		return nil, err
-	}
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", host, port))
-	if err != nil {
-		return nil, err
-	}
-	buffer := new(bytes.Buffer)
-
-	// xdr格式编码
-	if _, err := xdr.Marshal(buffer, &nfsrpc.AuthsysParms{
+func GetNfsClient(host string) (*Client, error) {
+	return NewNFSClientAuth(host, 1, &nfsrpc.AuthsysParms{
 		100231,
 		"ubuntu",
 		500,
 		500,
 		0,
-	}); err != nil {
-		return nil, err
-	}
-	bs := buffer.Bytes()
-	//bss := [400]byte{}
-	client := nfsrpc.NewClient(conn,
-		&nfsrpc.OpaqueAuth{1, bs},
-		nil,
-	)
-	return client, nil
+	})
 }
 
 func GetHandle(name string) (*NFS_FH3, error) {
 	c, _ := net.Dial("tcp", host+":1011")
 	client := nfsrpc.NewClient(c, nil, nil)
-	s, err := methods.Mnt(client, name)
+	s, err := nfsrpc.Mnt(client, name)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +39,7 @@ func TestGetAttr(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	result := GetAttrRes{}
 	err = client.Call("NFS.GetAttr",
 		GetAttr3Args{fh.Data},
@@ -75,7 +51,7 @@ func TestGetAttr(t *testing.T) {
 }
 
 func TestSetAttr(t *testing.T) {
-	fh, err := GetHandle("/home/ubuntu/go/src/t.go")
+	fh, err := GetHandle("/home/ubuntu/go/src/test.go")
 	if err != nil {
 		t.Error(err)
 	}
@@ -84,6 +60,7 @@ func TestSetAttr(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	result := SetAttr3Res{}
 	err = client.Call("NFS.SetAttr",
 		SetAttr3Aargs{
@@ -115,6 +92,7 @@ func TestLookUp(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	result := LookUp3Res{}
 	err = client.Call("NFS.Lookup",
 		LookUp3Args{
@@ -137,6 +115,7 @@ func TestAccess(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	result := Access3Res{}
 	err = client.Call("NFS.Access",
 		Access3Args{
@@ -159,6 +138,7 @@ func TestReadLink(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	result := ReadLink3Res{}
 	err = client.Call("NFS.ReadLink",
 		ReadLink3Args{
@@ -180,6 +160,7 @@ func TestRead(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	result := Read3Res{}
 	err = client.Call("NFS.Read",
 		Read3Args{
@@ -213,6 +194,7 @@ func TestWrite(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := Write3Res{}
 	err = client.Call("NFS.Write",
@@ -239,6 +221,7 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := Create3Res{}
 	err = client.Call("NFS.Create",
@@ -262,6 +245,7 @@ func TestMkDir(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := MkDirRes{}
 	err = client.Call("NFS.MkDir",
@@ -285,6 +269,7 @@ func TestSymLink(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := SymLinkRes{}
 	err = client.Call("NFS.SymLink",
@@ -308,6 +293,7 @@ func TestRemove(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := Remove3Res{}
 	err = client.Call("NFS.Remove",
@@ -330,6 +316,7 @@ func TestReadDir(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := ReadDirRes{}
 	err = client.Call("NFS.ReadDir",
@@ -346,7 +333,7 @@ func TestReadDir(t *testing.T) {
 		if d == nil {
 			break
 		}
-		fmt.Println(d.Name, d.Fileid,d.Cookie)
+		fmt.Println(d.Name, d.Fileid, d.Cookie)
 		d = d.NextEntry
 	}
 	//err = client.Call("NFS.ReadDir",
@@ -372,11 +359,12 @@ func TestReadDirPlus(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := ReadDirPlusRes{}
 	err = client.Call("NFS.ReadDirPlus",
 		ReadDirPlus3Args{
-			Dir:   *fh,
+			Dir:      *fh,
 			DirCount: 20,
 			MaxCount: 2000, // The size must include all XDR overhead.
 		},
@@ -390,7 +378,7 @@ func TestReadDirPlus(t *testing.T) {
 		if d == nil {
 			break
 		}
-		fmt.Println(d.Name, d.Fileid,d.Cookie, d.NameAttrs,d.NameHandle.Handle.Data)
+		fmt.Println(d.Name, d.Fileid, d.Cookie, d.NameAttrs, d.NameHandle.Handle.Data)
 		d = d.NextEntry
 	}
 	//err = client.Call("NFS.ReadDir",
@@ -416,6 +404,7 @@ func TestFsStat(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := FsStatRes{}
 	err = client.Call("NFS.FsStat",
@@ -438,6 +427,7 @@ func TestFsInfo(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := FsInfoRes{}
 	err = client.Call("NFS.FsStat",
@@ -460,6 +450,7 @@ func TestPathConf(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := PathConfRes{}
 	err = client.Call("NFS.PathConf",
@@ -476,12 +467,13 @@ func TestPathConf(t *testing.T) {
 func TestCommit(t *testing.T) {
 	fh, err := GetHandle("/home/ubuntu/go/src/test.go")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	client, err := GetNfsClient(host)
 	if err != nil {
 		t.Error(err)
 	}
+	defer client.Close()
 	fmt.Println(fh)
 	result := Commit3Res{}
 	err = client.Call("NFS.Commit",

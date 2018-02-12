@@ -1,10 +1,10 @@
-package methods
+package nfsrpc
 
 import (
-	"bs-2018/mynfs/nfsrpc"
 	"errors"
-	"net/rpc"
 	"fmt"
+	"net/rpc"
+	"log"
 )
 
 // MOUNT
@@ -13,6 +13,7 @@ import (
 const (
 	MOUNT_PROG = 100005
 	MOUNT_VERS = 3
+	Mount_Name = "Mount"
 )
 
 type MountMethod uint32
@@ -43,7 +44,7 @@ const (
 
 const (
 	// The MOUNT service uses AUTH_NONE in the NULL procedure.
-	AUTH_WAY   = nfsrpc.AuthNone
+	AUTH_WAY   = AuthNone
 	MNTPATHLEN = 1024 // Maximum bytes in a path name
 	MNTNAMLEN  = 255  // Maximum bytes in a name
 	FHSIZE3    = 64   // Maximum bytes in a V3 file handle
@@ -58,13 +59,42 @@ const (
 */
 
 type MountRes3 struct {
-	Stat uint32 `xdr:"union"`
+	Stat      uint32      `xdr:"union"`
 	MountInfo MountRes3OK `xdr:"unioncase=0"`
 }
 
 type MountRes3OK struct {
 	FHandle []byte
-	flavors nfsrpc.AuthFlavor
+	flavors AuthFlavor
+}
+
+func MountInit() {
+	methods := []string {
+		"Null",
+		"Mnt",
+		"Dump",
+		"UMnt",
+		"UMntAll",
+		"Export",
+	}
+
+	producerId := ProcedureID{
+		ProgramNumber:  MOUNT_PROG,
+		ProgramVersion: MOUNT_VERS,
+	}
+	for id, procName := range methods {
+		producerId.ProcedureNumber = uint32(id)
+		if err := RegisterProcedure(
+			Procedure{
+				ID:   producerId,
+				Name: Mount_Name + "." + procName,
+			},
+		); err != nil {
+			panic(err)
+		}
+	}
+
+	log.Println("\tMount Register over")
 }
 
 func Mnt(client *rpc.Client, dirpath string) (*MountRes3, error) {
@@ -79,7 +109,6 @@ func Mnt(client *rpc.Client, dirpath string) (*MountRes3, error) {
 	}
 	return &result, nil
 }
-
 
 // MOUNTPROC3_DUMP return
 type MountBody struct {

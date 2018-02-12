@@ -1,4 +1,4 @@
-package nfs
+package nfs_progra
 
 type SattrGuard3 struct {
 	Check    bool    `xdr:"union"`

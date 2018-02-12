@@ -1,4 +1,4 @@
-package nfs
+package nfs_progra
 
 import "github.com/pkg/errors"
 
