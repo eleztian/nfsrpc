@@ -406,3 +406,93 @@ func TestReadDirPlus(t *testing.T) {
 	//}
 	//fmt.Println("Create: ",result)
 }
+
+func TestFsStat(t *testing.T) {
+	fh, err := GetHandle("/home/ubuntu/go/src")
+	if err != nil {
+		t.Error(err)
+	}
+	client, err := GetNfsClient(host)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(fh)
+	result := FsStatRes{}
+	err = client.Call("NFS.FsStat",
+		FsStat3Args{
+			*fh,
+		},
+		&result)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(result.ResOk.TBytes)
+}
+
+func TestFsInfo(t *testing.T) {
+	fh, err := GetHandle("/home/ubuntu/go/src")
+	if err != nil {
+		t.Error(err)
+	}
+	client, err := GetNfsClient(host)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(fh)
+	result := FsInfoRes{}
+	err = client.Call("NFS.FsStat",
+		FsInfoArgs{
+			*fh,
+		},
+		&result)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(result.ResOk)
+}
+
+func TestPathConf(t *testing.T) {
+	fh, err := GetHandle("/home/ubuntu/go/src")
+	if err != nil {
+		t.Error(err)
+	}
+	client, err := GetNfsClient(host)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(fh)
+	result := PathConfRes{}
+	err = client.Call("NFS.PathConf",
+		PathConf3Args{
+			*fh,
+		},
+		&result)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(result.ResOk)
+}
+
+func TestCommit(t *testing.T) {
+	fh, err := GetHandle("/home/ubuntu/go/src/test.go")
+	if err != nil {
+		t.Error(err)
+	}
+	client, err := GetNfsClient(host)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(fh)
+	result := Commit3Res{}
+	err = client.Call("NFS.Commit",
+		Commit3Args{
+			*fh,
+			0,
+			20,
+		},
+		&result)
+	if err != nil {
+		t.Error(err)
+	}
+	fmt.Println(result)
+}
