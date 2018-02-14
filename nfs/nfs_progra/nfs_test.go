@@ -308,7 +308,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestReadDir(t *testing.T) {
-	fh, err := GetHandle("/home/ubuntu/go/src")
+	fh, err := GetHandle("/home/ubuntu/go")
 	if err != nil {
 		t.Error(err)
 	}

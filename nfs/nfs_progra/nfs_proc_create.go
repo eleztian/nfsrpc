@@ -215,7 +215,7 @@ type createResOk struct {
 }
 
 type Create3Res struct {
-	Status NFS3Stat `xdr:"union"`
+	Status NFS3Stat    `xdr:"union"`
 	ResOk  createResOk `xdr:"unioncase=0"`
 	DirWcc WccData
 }

@@ -3,8 +3,8 @@ package nfsrpc
 import (
 	"errors"
 	"fmt"
-	"net/rpc"
 	"log"
+	"net/rpc"
 )
 
 // MOUNT
@@ -28,6 +28,8 @@ const (
 	MOUNTPROC3_EXPORT
 )
 
+type MountState uint32
+
 // mount error
 const (
 	MNT3_OK             = 0     // no error
@@ -41,6 +43,35 @@ const (
 	MNT3ERR_NOTSUPP     = 10004 // Operation not supported
 	MNT3ERR_SERVERFAULT = 10006 // A failure on the server
 )
+
+func (ms MountState) Error() error {
+	errMsg := ""
+	switch ms {
+	case MNT3_OK:
+		return nil
+	case MNT3ERR_PERM:
+		errMsg = "Not owner"
+	case MNT3ERR_NOENT:
+		errMsg = "No such file or directory"
+	case MNT3ERR_IO:
+		errMsg = "I/O error"
+	case MNT3ERR_ACCES:
+		errMsg = "Permission denied"
+	case MNT3ERR_NOTDIR:
+		errMsg = "Not a directory"
+	case MNT3ERR_INVAL:
+		errMsg = "Invalid argument"
+	case MNT3ERR_NAMETOOLONG:
+		errMsg = "Filename too long"
+	case MNT3ERR_NOTSUPP:
+		errMsg = "Operation not supported"
+	case MNT3ERR_SERVERFAULT:
+		errMsg = "A failure on the server"
+	default:
+		errMsg = "Unknown error"
+	}
+	return fmt.Errorf("Mount [%d] %s", ms, errMsg)
+}
 
 const (
 	// The MOUNT service uses AUTH_NONE in the NULL procedure.
@@ -59,7 +90,7 @@ const (
 */
 
 type MountRes3 struct {
-	Stat      uint32      `xdr:"union"`
+	Stat      MountState  `xdr:"union"`
 	MountInfo MountRes3OK `xdr:"unioncase=0"`
 }
 
@@ -68,8 +99,8 @@ type MountRes3OK struct {
 	flavors AuthFlavor
 }
 
-func MountInit() {
-	methods := []string {
+func mountInit() {
+	methods := []string{
 		"Null",
 		"Mnt",
 		"Dump",
@@ -107,7 +138,7 @@ func Mnt(client *rpc.Client, dirpath string) (*MountRes3, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return &result, result.Stat.Error()
 }
 
 // MOUNTPROC3_DUMP return

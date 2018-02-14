@@ -40,7 +40,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	client := nfsrpc.NewClient(conn,nil, nil)
+	client := nfsrpc.NewClient(conn, nil, nil)
 	fmt.Println(methods.Export(client))
 	fmt.Println(methods.Dump(client))
 	fmt.Println(methods.Mnt(client, "/home/ubuntu/go"))

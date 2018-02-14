@@ -1,9 +1,9 @@
 package nfsrpc
 
 import (
-	"io"
-	"encoding/binary"
 	"bytes"
+	"encoding/binary"
+	"io"
 )
 
 const (

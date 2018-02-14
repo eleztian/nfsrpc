@@ -38,7 +38,7 @@ type PortMapper struct {
 	Port     uint32
 }
 
-func PamapInit() {
+func pamapInit() {
 	// This is ordered as per procedure number
 	methods := []string{
 		"ProcNull",
@@ -48,7 +48,6 @@ func PamapInit() {
 		"ProcDump",
 		"ProcCallIt",
 	}
-
 	producerId := ProcedureID{
 		ProgramNumber:  portmapperProgramNumber,
 		ProgramVersion: portmapperProgramVersion,

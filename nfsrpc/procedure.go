@@ -1,11 +1,11 @@
 package nfsrpc
 
 import (
-	"sync"
 	"errors"
 	"strings"
-	"unicode/utf8"
+	"sync"
 	"unicode"
+	"unicode/utf8"
 )
 
 /*
@@ -79,7 +79,7 @@ func GetProcedureID(name string) (ProcedureID, bool) {
 	procedureRegistry.RLock()
 	defer procedureRegistry.RWMutex.RUnlock()
 	id, ok := procedureRegistry.rMap[name]
-	return id,ok
+	return id, ok
 }
 
 func RemoveProcedureID(procedure interface{}) {

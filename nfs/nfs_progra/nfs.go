@@ -71,7 +71,7 @@ func NewNfsClient(host string) (*Client, error) {
 	return &Client{client}, nil
 }
 
-func NewNFSClientAuth(host string, authWay nfsrpc.AuthFlavor, authBody interface{}) (*Client, error) {
+func NewNFSClientAuth(host string, authWay int32, authBody interface{}) (*Client, error) {
 	port, err := nfsrpc.PmapGetPort(host, NFS_PROG, NFS_VERS, nfsrpc.IPProtoTCP)
 	if err != nil {
 		return nil, err
@@ -81,11 +81,7 @@ func NewNFSClientAuth(host string, authWay nfsrpc.AuthFlavor, authBody interface
 		return nil, err
 	}
 
-	auth, err := nfsrpc.Auth(authWay, authBody)
-	if err != nil {
-		return nil, err
-	}
-	client := nfsrpc.NewClient(conn, auth, nil)
+	client := nfsrpc.NewClient(conn, nfsrpc.Auth(nfsrpc.AuthFlavor(authWay), authBody), nil)
 
 	return &Client{client}, nil
 }
